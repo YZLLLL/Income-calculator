@@ -3,15 +3,20 @@
   <div class="container">
     <div class="item">
       <span class="props">姓名:</span>
-      <span class="value">{{item.name}}</span>
+      <input class="value update" type="text" v-model="name">
     </div>
     <div class="item">
       <span class="props">岗位工资:</span>
-      <span class="value">{{item.wages}}</span>
+      <input class="value update" type="number" v-model="wages">
     </div>
     <div class="item">
       <span class="props">绩效评分:</span>
-      <span class="value">{{item.level}}</span>
+      <select class="value update" v-model="level">
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+      </select>
     </div>
     <div class="item">
       <span class="props">绩效工资:</span>
@@ -40,7 +45,11 @@
       <span class="props">税后收入:</span>
       <span class="value">{{item.realIncome}}</span>
     </div>
-    <div class="btn" @click="close">关闭</div>
+    <div>
+      <div class="btn" @click="updateUser">保存</div>
+      <div class="btn del-btn" @click="deleteUser">删除用户</div>
+      <div class="btn cancel" @click="close">关闭</div>
+    </div>
   </div>
 </div>
 
@@ -48,6 +57,7 @@
 </template>
 
 <script>
+import { ref } from '@vue/reactivity'
 export default {
   props:{
     item:{
@@ -55,10 +65,24 @@ export default {
     }
   },
   setup(props,context){
+    let name = ref(props.item.name)
+    let wages = ref(props.item.wages)
+    let level = ref(props.item.level)
+    const updateUser = () => {
+      context.emit('updateUser',{id:props.item.id,name,wages,level})
+    }
+    const deleteUser = () => {
+      context.emit('deleteUser',props.item.id)
+    }
     const close = () => {
       context.emit('closeDetails')
     }
     return {
+      name,
+      wages,
+      level,
+      updateUser,
+      deleteUser,
       close
     }
   }
@@ -96,6 +120,9 @@ export default {
       }
       .value{
         display: inline-block;
+        font-size: 18px;
+        border: 1px solid rgba(0,0,0,0.1);
+        outline-color: rgba(0,0,0,0.2);
         height: 30px;
         line-height: 30px;
         width: 220px;
@@ -103,6 +130,10 @@ export default {
         border-radius: 5px;
         box-sizing: border-box;
         background-color: #eee;
+        opacity: 0.5;
+      }
+      .update{
+        opacity: 1;
       }
     }
     .insurance{
@@ -122,22 +153,18 @@ export default {
       }
       .amount{
         display: inline-block;
+        cursor:not-allowed;
         width: 100px;
         margin: 0 10px;
         background-color: #eee;
         line-height: 30px;
         border-radius: 5px;
+        opacity: 0.5;
       }
     }
-    .btn{
-        width: 80px;
-        line-height: 40px;
-        text-align: center;
-        margin-top: 10px;
-        border-radius: 5px;
-        color: #fff;
-        cursor: pointer;
-        background-color: #f56c6c;
+    .del-btn{
+      margin-left: 40px;
+      background-color: #f56c6c;
     }
   }
 }

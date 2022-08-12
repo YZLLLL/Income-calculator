@@ -7,7 +7,7 @@
   <UserInfo v-if="flag.user" @getUser="getUser" @close="close" />
   <Setting v-if="flag.setting" :rateForm="rateForm" @closeSetting='closeSetting' @modifySetting='modifySetting' />
   <DataTable :userList='userList' @showDetails='showDetails' />
-  <Details v-if="flag.details" :item="info.details" @closeDetails='closeDetails' />
+  <Details v-if="flag.details" :item="info.details" @updateUser='updateUser' @deleteUser='deleteUser' @closeDetails='closeDetails' />
 </template>
 
 <script>
@@ -56,7 +56,7 @@ export default {
     })
     // 添加用户
     const getUser = userInfo => {
-      userList.push(calculate(userInfo,rateForm))
+      userList.push({id:nanoid(),...calculate(userInfo,rateForm)})
       flag.user = false
     }
     // 关闭useInfo组件
@@ -99,7 +99,6 @@ export default {
       // 真实收入
       let realIncome = preTax - taxCount
       return {
-        id:nanoid(),
         name,
         wages,
         level,
@@ -218,6 +217,26 @@ export default {
       info.details = i
       flag.details = true
     }
+    // 更新用户消息
+    const updateUser = ({id,name,wages,level}) => {
+        userList.forEach(v=>{
+        if(v.id==id){
+          let user = calculate({name:name.value,wages:wages.value,level:level.value},rateForm)
+          v = Object.assign(v,user)
+        }
+      })
+      
+      flag.details = false
+    }
+    // 删除用户
+    const deleteUser = id => {
+      userList.forEach((v,i)=>{
+        if(v.id==id){
+          userList.splice(i,1)
+        }
+      })
+      flag.details = false
+    }
     // 关闭工资详情
     const closeDetails = () => {
       flag.details = false
@@ -232,6 +251,8 @@ export default {
       modifySetting,
       closeSetting,
       showDetails,
+      updateUser,
+      deleteUser,
       closeDetails
     }
   }
@@ -264,6 +285,7 @@ export default {
 }
 .disable{
   color: #eee;
+  cursor:not-allowed;
   background-color: rgba(0, 0, 0, 0.5);
 }
 
