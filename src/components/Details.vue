@@ -20,33 +20,33 @@
     </div>
     <div class="item">
       <span class="props">绩效工资:</span>
-      <span class="value">{{item.meritPay}}</span>
+      <span class="value">{{roundNumber(item.meritPay)}}</span>
     </div>
     <div class="insurance">
       <div class="h6">五险一金详情</div>
       <div class="insurance-item"><span class="title"></span><span class="title">个人</span><span class="title">单位</span></div>
-      <div class="insurance-item"><span class="title">养老保险:</span><span class="amount">{{item.age[1]}}</span><span class="amount">{{item.age[0]}}</span></div>
-      <div class="insurance-item"><span class="title">医疗保险:</span><span class="amount">{{item.medical[1]}}</span><span class="amount">{{item.medical[0]}}</span></div>
-      <div class="insurance-item"><span class="title">失业保险:</span><span class="amount">{{item.unemployment[1]}}</span><span class="amount">{{item.unemployment[0]}}</span></div>
-      <div class="insurance-item"><span class="title">生育保险:</span><span class="amount">{{item.maternity[1]}}</span><span class="amount">{{item.maternity[0]}}</span></div>
-      <div class="insurance-item"><span class="title">工伤保险:</span><span class="amount">{{item.injury[1]}}</span><span class="amount">{{item.injury[0]}}</span></div>
-      <div class="insurance-item"><span class="title">住房公积金:</span><span class="amount">{{item.house[1]}}</span><span class="amount">{{item.house[0]}}</span></div>
-      <div class="insurance-item"><span class="title">总计:</span><span class="amount">{{item.insurancesTotal[1]}}</span><span class="amount">{{item.insurancesTotal[0]}}</span></div>
+      <div class="insurance-item"><span class="title">养老保险:</span><span class="amount">{{roundNumber(item.age[1])}}</span><span class="amount">{{roundNumber(item.age[0])}}</span></div>
+      <div class="insurance-item"><span class="title">医疗保险:</span><span class="amount">{{roundNumber(item.medical[1])}}</span><span class="amount">{{roundNumber(item.medical[0])}}</span></div>
+      <div class="insurance-item"><span class="title">失业保险:</span><span class="amount">{{roundNumber(item.unemployment[1])}}</span><span class="amount">{{roundNumber(item.unemployment[0])}}</span></div>
+      <div class="insurance-item"><span class="title">生育保险:</span><span class="amount">{{roundNumber(item.maternity[1])}}</span><span class="amount">{{roundNumber(item.maternity[0])}}</span></div>
+      <div class="insurance-item"><span class="title">工伤保险:</span><span class="amount">{{roundNumber(item.injury[1])}}</span><span class="amount">{{roundNumber(item.injury[0])}}</span></div>
+      <div class="insurance-item"><span class="title">住房公积金:</span><span class="amount">{{roundNumber(item.house[1])}}</span><span class="amount">{{roundNumber(item.house[0])}}</span></div>
+      <div class="insurance-item"><span class="title">总计:</span><span class="amount">{{roundNumber(item.insurancesTotal[1])}}</span><span class="amount">{{roundNumber(item.insurancesTotal[0])}}</span></div>
     </div>
     <div class="item">
       <span class="props">税前收入:</span>
-      <span class="value">{{item.preTax}}</span>
+      <span class="value">{{roundNumber(item.preTax)}}</span>
     </div>
     <div class="item">
       <span class="props">扣税:</span>
-      <span class="value">{{item.taxCount}}</span>
+      <span class="value">{{roundNumber(item.taxCount)}}</span>
     </div>
     <div class="item">
       <span class="props">税后收入:</span>
-      <span class="value">{{item.realIncome}}</span>
+      <span class="value">{{roundNumber(item.realIncome)}}</span>
     </div>
     <div>
-      <div class="btn" @click="updateUser">保存</div>
+      <div :class="['btn',name.trim()==''||wages==''||level==''?'disable':'']" @click="updateUser">保存</div>
       <div class="btn del-btn" @click="deleteUser">删除用户</div>
       <div class="btn cancel" @click="close">关闭</div>
     </div>
@@ -58,6 +58,7 @@
 
 <script>
 import { ref } from '@vue/reactivity'
+import {roundNumber} from '@/utils/calculate.js'
 export default {
   props:{
     item:{
@@ -69,6 +70,7 @@ export default {
     let wages = ref(props.item.wages)
     let level = ref(props.item.level)
     const updateUser = () => {
+      if(name.value.trim()==''||wages.value==''||level.value=='') return
       context.emit('updateUser',{id:props.item.id,name,wages,level})
     }
     const deleteUser = () => {
@@ -78,6 +80,7 @@ export default {
       context.emit('closeDetails')
     }
     return {
+      roundNumber,
       name,
       wages,
       level,
@@ -157,6 +160,7 @@ export default {
         width: 100px;
         margin: 0 10px;
         background-color: #eee;
+        height: 30px;
         line-height: 30px;
         border-radius: 5px;
         opacity: 0.5;

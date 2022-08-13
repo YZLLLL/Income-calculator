@@ -17,6 +17,7 @@ import DataTable from '@/components/DataTable.vue'
 import Details from '@/components/Details.vue'
 import { reactive } from '@vue/reactivity'
 import {nanoid} from 'nanoid'
+import {getInsurance,getTax} from '@/utils/calculate.js'
 export default {
   components:{UserInfo,Setting,DataTable,Details},
   setup(){
@@ -28,7 +29,7 @@ export default {
     })
     // 用户列表
     const userList = reactive([])
-    // 五险一金、个人所得税
+    // 五险一金、个人所得税 表
     const rateForm = reactive({
       insurance:{
         // [公司，个人，title]
@@ -39,7 +40,6 @@ export default {
         injury:[0.5,0,'⼯伤保险'],
         house:[7,7,'住房公积金']
       },
-      // tax:[3,10,20,25,30,35,45],
       tax:[{title:'不超过1500元的',rate:3},
       {title:'超过1500元⾄4500元的部分',rate:10},
       {title:'超过4500元⾄9000元的部分',rate:20},
@@ -47,6 +47,8 @@ export default {
       {title:'超过35000元⾄55000元的部分',rate:30},
       {title:'超过55000元⾄80000元的部分',rate:35},
       {title:'超过80000元的部分',rate:45}],
+      minBase:3022,
+      maxBase:15108,
       levelForm:{
         A:[5000,20],
         B:[700,10],
@@ -64,10 +66,12 @@ export default {
       flag.user = false   
     }
     // 保存setting
-    const modifySetting = ({insurance,tax,levelForm}) => {
+    const modifySetting = ({insurance,tax,levelForm,minBase,maxBase}) => {
       rateForm.insurance = insurance
       rateForm.tax = tax
       rateForm.levelForm = levelForm
+      rateForm.minBase = minBase
+      rateForm.maxBase = maxBase
       userList.forEach((v,i) =>{
         userList[i] = calculate(v,rateForm)
       })
@@ -114,99 +118,6 @@ export default {
         taxCount,
         realIncome,
       }
-    }
-
-    // 计算五险一金
-    const getInsurance = (userInfo,rateForm) => {
-      let {wages,level,name} = userInfo
-      let {insurance,levelForm} = rateForm
-      let age=[],medical=[],unemployment=[],maternity=[],injury=[],house=[],base=0,insurancesTotal=[]
-      if(wages<=3022){
-        base = 3022
-      }else if(wages>=15108){
-        base = 15108
-      }else{
-        base = wages
-      }
-      age[0] = base*insurance.age[0]/100
-      age[1] = base*insurance.age[1]/100
-      age[2] = age[0] + age[1]
-      medical[0] = base*insurance.medical[0]/100
-      medical[1] = base*insurance.medical[1]/100
-      medical[2] = medical[0] + medical[1]
-      unemployment[0] = base*insurance.unemployment[0]/100
-      unemployment[1] = base*insurance.unemployment[1]/100
-      unemployment[2] = unemployment[0] + unemployment[1]
-      maternity[0] = base*insurance.maternity[0]/100
-      maternity[1] = base*insurance.maternity[1]/100
-      maternity[2] = maternity[0] + maternity[1]
-      injury[0] = base*insurance.injury[0]/100
-      injury[1] = base*insurance.injury[1]/100
-      injury[2] = injury[0] + injury[1]
-      house[0] = base*insurance.house[0]/100
-      house[1] = base*insurance.house[1]/100
-      house[2] = house[0] + house[1]
-      insurancesTotal[0] = age[0] + medical[0] + unemployment[0] + maternity[0] + injury[0] + house[0]
-      insurancesTotal[1] = age[1] + medical[1] + unemployment[1] + maternity[1] + injury[1] + house[1]
-      // 绩效工资
-      let meritPay = levelForm[level][0] + levelForm[level][1]*wages/100
-      // 税前收入
-      let preTax = wages + meritPay - insurancesTotal[1]
-      return {
-        name,
-        wages,
-        level,
-        meritPay,
-        age,
-        medical,
-        unemployment,
-        maternity,
-        injury,
-        house,
-        insurancesTotal,
-        preTax
-      }
-    }
-
-
-
-    // 计算个人所得税
-    /**
-     * params {n} 税前收入-3500
-     * params {tax} 个人所得税率表
-     */
-    const getTax = (n,tax) => {
-      let res = 0
-      let arr = []
-      arr[0] = 0
-      arr[1] = 1500*tax[0].rate/100 + arr[0]
-      arr[2] = 3000*tax[1].rate/100 + arr[1]
-      arr[3] = 4500*tax[2].rate/100 + arr[2]
-      arr[4] = 26000*tax[3].rate/100 + arr[3]
-      arr[5] = 20000*tax[4].rate/100 + arr[4]
-      arr[6] = 25000*tax[5].rate/100 + arr[5]
-      if(n>80000){
-        res +=  (n-80000)*tax[6].rate/100 + arr[6]
-      }
-      if(n>55000&&n<=80000){
-        res +=  (n-55000)*tax[5].rate/100 + arr[5]
-      }
-      if(n>35000&&n<=55000){
-        res += (n-35000)*tax[4].rate/100 + arr[4]
-      }
-      if(n>9000&&n<=35000){
-        res += (n-9000)*tax[3].rate/100 + arr[3]
-      }
-      if(n>4500&&n<=9000){
-        res += (n-4500)*tax[2].rate/100 + arr[2]
-      }
-      if(n>1500&&n<=4500){
-        res += (n-1500)*tax[1].rate/100 + arr[1]
-      }
-      if(n<=1500){
-        res += n*tax[0].rate/100 + arr[0]
-      }
-      return res
     }
 
     // 展示工资详情
@@ -263,6 +174,7 @@ export default {
 .btn{
   display: inline-block;
   width: 80px;
+  height: 40px;
   line-height: 40px;
   text-align: center;
   border-radius: 5px;

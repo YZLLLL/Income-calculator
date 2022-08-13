@@ -15,6 +15,14 @@
           <input type="number" class="amount" v-model="item[1]" />
           <input type="number" class="amount" v-model="item[0]" />
         </div>
+        <div class="insurance-item">
+          <span class="title">最低基数：</span>
+          <input type="number" class="amount" v-model="minBase" />元
+        </div>
+        <div class="insurance-item">
+          <span class="title">最低基数：</span>
+          <input type="number" class="amount" v-model="maxBase" />元
+        </div>
       </div>
       <div class="form" v-show="flag.tax">
         <div class="insurance-item">
@@ -37,7 +45,7 @@
         </div>
       </div>
       <div>
-        <div class="btn setBtn" @click="onBtnClick">保存所有</div>
+        <div :class="['btn',disable?'':'disable','setBtn']" @click="onBtnClick">保存所有</div>
         <div class="btn cancel" @click="close">取消</div>
       </div>
     </div>
@@ -45,7 +53,8 @@
 </template>
 
 <script>
-import { reactive } from '@vue/reactivity'
+import { reactive, ref } from '@vue/reactivity'
+import { computed } from '@vue/runtime-core'
 export default {
   props:{
     rateForm:{
@@ -64,21 +73,53 @@ export default {
       flag.levelForm = false
       flag[key] = true
     }
-    const insurance = reactive(props.rateForm.insurance)
-    const tax = reactive(props.rateForm.tax)
-    const levelForm = reactive(props.rateForm.levelForm)
+    const insurance = reactive(JSON.parse(JSON.stringify(props.rateForm.insurance)))
+    const tax = reactive(JSON.parse(JSON.stringify(props.rateForm.tax)))
+    const levelForm = reactive(JSON.parse(JSON.stringify(props.rateForm.levelForm)))
+    let minBase = ref(parseInt(props.rateForm.minBase))
+    const maxBase = ref(parseInt(props.rateForm.maxBase))
+    let disable = computed(()=>{
+      let i = true,t = true,p = true,l = true
+      for (const key in insurance) {
+        if(insurance[key].indexOf('')!=-1){
+          i = false
+          break
+        }
+      }
+      for (const item of tax) {
+        if(item.rate==''){
+          t = false
+          break
+        }
+      }
+      if(maxBase.value==''||minBase.value==''){
+        p = false
+      }
+      for (const key in levelForm) {
+        if(levelForm[key].indexOf('')!=-1){
+          l = false
+          break
+        }
+      }
+      return i&&t&&p&&l
+    })
     const onBtnClick = () => {
-      context.emit('modifySetting',{insurance,tax,levelForm})
+      if(!disable.value) return
+      context.emit('modifySetting',{insurance,tax,levelForm,minBase:minBase.value,maxBase:maxBase.value})
     }
     const close = () => {
+      console.log(props);
       context.emit('closeSetting')
     }
     return {
       flag,
+      disable,
       handleActive,
       insurance,
       tax,
       levelForm,
+      minBase,
+      maxBase,
       onBtnClick,
       close
     }
@@ -88,7 +129,7 @@ export default {
 
 <style lang="less" scoped>
 .mask{
-    font-size: 18px;
+  font-size: 18px;
   position: fixed;
   left: 0;
   right: 0;
@@ -100,7 +141,7 @@ export default {
   background-color: rgba(0,0,0,0.1);
   .container{
     width: 600px;
-    height: 480px;
+    height: 600px;
     border-radius: 10px;
     display: flex;
     justify-content: center;
@@ -119,7 +160,7 @@ export default {
     }
     .form{
       width: 480px;
-      height: 324px;
+      height: 400px;
       font-size: 18px;
       .insurance-item{
         margin: 10px 0;

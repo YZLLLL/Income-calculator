@@ -13,13 +13,13 @@
   <template v-if="userList.length">
     <div class="center flex" v-for="item in userList" :key="item.id">
       <span class="span">{{item.name}}</span>
-      <span class="span">{{item.wages}}</span>
-      <span class="span">{{item.meritPay}}</span>
-      <span class="span">{{item.insurancesTotal[1]}}</span>
-      <span class="span">{{item.insurancesTotal[0]}}</span>
-      <span class="span">{{item.preTax}}</span>
-      <span class="span">{{item.taxCount}}</span>
-      <span class="span">{{item.realIncome}}</span>
+      <span class="span">{{roundNumber(item.wages)}}</span>
+      <span class="span">{{roundNumber(item.meritPay)}}</span>
+      <span class="span">{{roundNumber(item.insurancesTotal[1])}}</span>
+      <span class="span">{{roundNumber(item.insurancesTotal[0])}}</span>
+      <span class="span">{{roundNumber(item.preTax)}}</span>
+      <span class="span">{{roundNumber(item.taxCount)}}</span>
+      <span class="span">{{roundNumber(item.realIncome)}}</span>
       <span class="span">
         <div @click="onShowDetailsClick(item)" class="btn">查看详情</div>
       </span>
@@ -34,6 +34,7 @@
 </template>
 
 <script>
+import {roundNumber} from '@/utils/calculate.js'
 export default {
   props:{
     userList:{
@@ -46,6 +47,7 @@ export default {
     }
 
     return {
+      roundNumber,
       onShowDetailsClick
     }
   }
@@ -56,6 +58,7 @@ export default {
 .span{
   display: inline-block;
   width: 140px;
+  height: 60px;
   line-height: 60px;
   text-align: center;
   box-sizing: border-box;
